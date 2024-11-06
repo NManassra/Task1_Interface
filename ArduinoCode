@@ -1,59 +1,68 @@
 //Mariam Turk 1211115
 //Noura Manassra 1212359
-int Ultrasonic = 0;
-int potValue = 0; 
-int offset = 0;  
 
+int Ultrasonic = 0; // variable to store distance mesured by the ultrasonic sensor
+int potValue = 0;   // variable to store the potentiometer reading
+int offset = 0;     // variable to store the calculatted offset value
+
+// function to read the distance using an ultrasonic sensor
+// the function takes triggerPin and echoPin as inputs
 long readUltrasonicDistance(int triggerPin, int echoPin)
 {
-  pinMode(triggerPin, OUTPUT);  
-  digitalWrite(triggerPin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(triggerPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(triggerPin, LOW);
-  pinMode(echoPin, INPUT);
-  return pulseIn(echoPin, HIGH);
+  pinMode(triggerPin, OUTPUT);  // set the trigger pin as an output
+  digitalWrite(triggerPin, LOW); // ensure the trigger pin is low
+  delayMicroseconds(2);          // wait for 2 microseconds
+  digitalWrite(triggerPin, HIGH); // send a 10-microsecond pulse to the trigger pin
+  delayMicroseconds(10);          // wait for 10 microseconds
+  digitalWrite(triggerPin, LOW);  // set the trigger pin low again
+  pinMode(echoPin, INPUT);        // set the echo pin as an input
+  return pulseIn(echoPin, HIGH);  // measure the time for the echo pin to go high and return the duration
 }
 
 void setup()
 {
-  Serial.begin(9600);
-  pinMode(10, OUTPUT); 
-  pinMode(9, OUTPUT);  
-  pinMode(8, OUTPUT); 
-  pinMode(A4, INPUT);  
+  Serial.begin(9600); // initialize serial comunication at a baud rate of 9600
+  pinMode(10, OUTPUT); // set pin 10 as an output for the red led
+  pinMode(9, OUTPUT);  // set pin 9 as an output for the yellow led
+  pinMode(8, OUTPUT);  // set pin 8 as an output for the green led
+  pinMode(A4, INPUT);  // set analog pin A4 as an input for the potentiometer
 }
 
 void loop()
 {
+  // calculate the distance using the ultrasonic sensor and convert to cm (0.01723 is a scaling factor)
   Ultrasonic = 0.01723 * readUltrasonicDistance(6, 5);
-  Serial.println(Ultrasonic);
-  
-  potValue = analogRead(A4); 
-    offset = map(potValue, 0, 1023, -5, 10);
-  
-  int redThresholdLow = 0 + offset;
-  int redThresholdHigh = 10 + offset;
-  
-  int yellowThresholdLow = 10 + offset;
-  int yellowThresholdHigh = 20 + offset;
+  Serial.println(Ultrasonic); // print the mesured distance to the serial monitor
 
+  // read the potentiometer value and map it to an offset range from -5 to 10
+  potValue = analogRead(A4);
+  offset = map(potValue, 0, 1023, -5, 10);
+
+  // define threshold ranges for each led based on the offset value
+  int redThresholdLow = 0 + offset;   // lower threshold for red led
+  int redThresholdHigh = 10 + offset; // upper threshold for red led
+  
+  int yellowThresholdLow = 10 + offset;   // lower threshold for yellow led
+  int yellowThresholdHigh = 20 + offset;  // upper threshold for yellow led
+
+  // check if the mesured distance falls within the red led range
   if (Ultrasonic >= redThresholdLow && Ultrasonic < redThresholdHigh) {
-    digitalWrite(10, HIGH);
-    digitalWrite(9, LOW);
-    digitalWrite(8, LOW);
+    digitalWrite(10, HIGH); // turn on red led
+    digitalWrite(9, LOW);   // turn off yellow led
+    digitalWrite(8, LOW);   // turn off green led
     
+  // check if the mesured distance falls within the yellow led range
   } else if (Ultrasonic >= yellowThresholdLow && Ultrasonic < yellowThresholdHigh) {
-    digitalWrite(10, LOW);
-    digitalWrite(9, HIGH);
-    digitalWrite(8, LOW);
+    digitalWrite(10, LOW);  // turn off red led
+    digitalWrite(9, HIGH);  // turn on yellow led
+    digitalWrite(8, LOW);   // turn off green led
     
+  // check if the mesured distance is greater than the yellow led range (for green led)
   } else if (Ultrasonic >= yellowThresholdHigh) {
-    digitalWrite(10, LOW);
-    digitalWrite(9, LOW);
-    digitalWrite(8, HIGH);
+    digitalWrite(10, LOW);  // turn off red led
+    digitalWrite(9, LOW);   // turn off yellow led
+    digitalWrite(8, HIGH);  // turn on green led
   }
   
-  delay(10);
+  delay(10); // small delay to stabilize readings
 }
