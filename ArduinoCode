@@ -1,0 +1,59 @@
+//Mariam Turk 1211115
+//Noura Manassra 1212359
+int Ultrasonic = 0;
+int potValue = 0; 
+int offset = 0;  
+
+long readUltrasonicDistance(int triggerPin, int echoPin)
+{
+  pinMode(triggerPin, OUTPUT);  
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(triggerPin, LOW);
+  pinMode(echoPin, INPUT);
+  return pulseIn(echoPin, HIGH);
+}
+
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(10, OUTPUT); 
+  pinMode(9, OUTPUT);  
+  pinMode(8, OUTPUT); 
+  pinMode(A4, INPUT);  
+}
+
+void loop()
+{
+  Ultrasonic = 0.01723 * readUltrasonicDistance(6, 5);
+  Serial.println(Ultrasonic);
+  
+  potValue = analogRead(A4); 
+    offset = map(potValue, 0, 1023, -5, 10);
+  
+  int redThresholdLow = 0 + offset;
+  int redThresholdHigh = 10 + offset;
+  
+  int yellowThresholdLow = 10 + offset;
+  int yellowThresholdHigh = 20 + offset;
+
+  if (Ultrasonic >= redThresholdLow && Ultrasonic < redThresholdHigh) {
+    digitalWrite(10, HIGH);
+    digitalWrite(9, LOW);
+    digitalWrite(8, LOW);
+    
+  } else if (Ultrasonic >= yellowThresholdLow && Ultrasonic < yellowThresholdHigh) {
+    digitalWrite(10, LOW);
+    digitalWrite(9, HIGH);
+    digitalWrite(8, LOW);
+    
+  } else if (Ultrasonic >= yellowThresholdHigh) {
+    digitalWrite(10, LOW);
+    digitalWrite(9, LOW);
+    digitalWrite(8, HIGH);
+  }
+  
+  delay(10);
+}
